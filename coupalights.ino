@@ -30,11 +30,32 @@ Example sketch for driving Adafruit WS2801 pixels!
 int dataPin  = 2;    // Yellow wire on Adafruit Pixels
 int clockPin = 3;    // Green wire on Adafruit Pixels
 
+int pollenPixels[] = {1,6,22,33,36,47,52,61};
+// 1-4 represents the lightest blue to the darkest blue
+int blue1Pixels[] = {14,17,64};
+int blue2Pixels[] = {2,3,7,15,16,21,25,27,29,30,34,37,40,45,48,49,56,57,62,63};
+int blue3Pixels[] = {10,13,18,19,24,26,28,31,32,35,39,41,42,46,51,53,65};
+int blue4Pixels[] = {4,5,8,9,11,12,20,23,38,43,44,50,54,55,58,59,60};
+int pixelGrid[12][12] = {
+  {0 ,0 ,0 ,35,0 ,34,31,30,29,0 ,28,0 },
+  {0 ,36,37,38,39,0 ,32,0 ,27,26,0 ,0 },
+  {0 ,0 ,40,0 ,0 ,0 ,33,0 ,23,24,25,0 },
+  {44,43,42,41,0 ,0 ,0 ,0 ,0 ,22,21,0 },
+  {0 ,45,0 ,0 ,0 ,0 ,0 ,0 ,0 ,18,19,20},
+  {49,48,47,46,0 ,0, 0 ,0 ,0 ,0 ,17,0 },
+  {0 ,0 ,50,51,52,0 ,0 ,0 ,13,14,15,16},
+  {0 ,55,54,53,0 ,0 ,12,0 ,11,10,0 ,0 },
+  {0 ,0 ,0 ,56,57,58,5 ,6 ,7 ,8 ,9 ,0 },
+  {64,0 ,63,62,0 ,59,4 ,3 ,2 ,0 ,0 ,0 },
+  {0 ,0 ,0 ,61,0 ,60,0 ,0 ,0 ,1 ,0 ,0 },
+  {0 ,65,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 }
+};
+
 // Don't forget to connect the ground wire to Arduino ground,
 // and the +5V wire to a +5V supply
 
 // Set the first variable to the NUMBER of pixels. 25 = 25 pixels in a row
-Adafruit_WS2801 strip = Adafruit_WS2801(25, dataPin, clockPin);
+Adafruit_WS2801 strip = Adafruit_WS2801(65, dataPin, clockPin);
 
 // Optional: leave off pin numbers to use hardware SPI
 // (pinout is then specific to each board and can't be changed)
@@ -60,12 +81,37 @@ void setup() {
 
 void loop() {
   // Some example procedures showing how to display to the pixels
-  
-  colorWipe(Color(255, 0, 0), 50);
-  colorWipe(Color(0, 255, 0), 50);
-  colorWipe(Color(0, 0, 255), 50);
-  rainbow(20);
-  rainbowCycle(20);
+  cyclePetals(Color(255,255,255), 750);
+  cyclePetals(Color(0,0,0), 750);
+//  colorWipe(Color(255, 0, 0), 50);
+//  colorWipe(Color(0, 255, 0), 50);
+//  colorWipe(Color(0, 0, 255), 50);
+//  rainbow(20);
+//  rainbowCycle(20);
+}
+
+void cyclePetals(uint32_t c, uint8_t wait) {
+  setArrayColor(blue1Pixels, sizeof(blue1Pixels) / sizeof(blue1Pixels[0]), c);
+  strip.show();
+  delay(wait);
+  setArrayColor(blue2Pixels, sizeof(blue2Pixels) / sizeof(blue2Pixels[0]), c);
+  strip.show();
+  delay(wait);
+  setArrayColor(blue3Pixels, sizeof(blue3Pixels) / sizeof(blue3Pixels[0]), c);
+  strip.show();
+  delay(wait);  
+  setArrayColor(blue4Pixels, sizeof(blue4Pixels) / sizeof(blue4Pixels[0]), c);
+  strip.show();
+  delay(wait);
+  setArrayColor(pollenPixels, sizeof(pollenPixels) / sizeof(pollenPixels[0]), c);
+  strip.show();
+  delay(wait);
+}
+
+void setArrayColor(int pixelArray[],int arraySize,uint32_t c) {
+  for (int i=0; i < arraySize; i++) {
+    strip.setPixelColor(pixelArray[i]-1,c);
+  }
 }
 
 void rainbow(uint8_t wait) {
@@ -122,6 +168,16 @@ uint32_t Color(byte r, byte g, byte b)
   c <<= 8;
   c |= b;
   return c;
+}
+
+// set the color based on x,y coordinates in the 12x12 grid, 
+// 0-based with origin in the upper left
+void setPixelColorXY(uint8_t x, uint8_t y, uint32_t c)
+{
+  int idx = pixelGrid[x][y];
+  if (idx > 0) {
+    strip.setPixelColor(idx,c);
+  }
 }
 
 //Input a value 0 to 255 to get a color value.
